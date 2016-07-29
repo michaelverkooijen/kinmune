@@ -30,3 +30,7 @@ payload = {'limit': '25', 'page': '0', 'responseGroup': 'small', 'reported': 'fa
 r = session.get('https://services.wikia.com/discussion/'+wiki_id+'/posts', params=payload, headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
 for post in r.json()['_embedded']['doc:posts']:
     print(post['rawContent'])
+
+    if '123' in post['rawContent']:
+        r = session.put('https://services.wikia.com/discussion/'+wiki_id+'/posts/' + post['id'] + "/delete", headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
+        print(r.text)

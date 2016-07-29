@@ -25,19 +25,19 @@ wiki_id = core.get_wiki_id(session, wiki)
 edit_token = core.get_edit_token(session, wiki, 'User:'+username)
 print(edit_token)
 
-payload = {'action': 'query', 'list': 'backlinks', 'bltitle': 'Clothing (Oblivion)', 'bllimit': '5000', 'format': 'json'}
+payload = {'action': 'query', 'list': 'categorymembers', 'cmtitle': 'Category:Documentation Templates', 'cmlimit': '5000', 'format': 'json'}
 r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload)
 print(r.url)
 
 #FIXME: not compatible with articles over 8k in size due to not using multi-part uploads.
-for page in r.json()['query']['backlinks']:
+for page in r.json()['query']['categorymembers']:
     #print(page['title'])
 
     # get page contents
     payload = {'action': 'raw'}
     body = session.get('https://'+wiki+'.wikia.com/wiki/'+page['title'], params=payload).text
 
-    body = body.replace('[[Clothing (Oblivion)#Rings|', '[[Rings (Oblivion)|')
+    body = body.replace('[[Category:Documentation Templates', '[[Category:Template Documentation')
     #TODO: test body size, break if over 8k.
-    payload = {'action': 'edit', 'title': page['title'], 'summary': 'Clothing (Oblivion)#Rings &rarr; Rings (Oblivion)', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': body, 'token': edit_token}
+    payload = {'action': 'edit', 'title': page['title'], 'summary': 'Documentation Templates &rarr; Template Documentation', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': body, 'token': edit_token}
     print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)

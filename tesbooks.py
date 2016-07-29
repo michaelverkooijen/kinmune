@@ -26,7 +26,7 @@ wiki_id = core.get_wiki_id(session, wiki)
 edit_token = core.get_edit_token(session, wiki, 'User:'+username)
 print(edit_token)
 
-payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:OnlineBooks', 'eilimit': '5000', 'format': 'json'}
+payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:OblivionBooks', 'eilimit': '5000', 'format': 'json'}
 r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload)
 print(r.url)
 
@@ -69,6 +69,6 @@ for page in r.json()['query']['embeddedin']:
     #sys.stdout.buffer.write((new_body).encode('utf-8'))
 
     #TODO: test body size, break if over 8k.
-    if body != new_body:
+    if body is not new_body:
         payload = {'action': 'edit', 'title': page['title'], 'summary': 'PI Gallery fix', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
         print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
