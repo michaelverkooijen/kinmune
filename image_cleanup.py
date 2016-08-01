@@ -22,14 +22,20 @@ session = core.login(wiki, username, password)
 print(core.is_logged_in(session, username, wiki))
 
 wiki_id = core.get_wiki_id(session, wiki)
-print(wiki_id)
+edit_token = core.get_edit_token(session, wiki, 'User:'+username)
+print(edit_token)
 
+# Loops until all images are through
+def get_images(aifrom=None):
+    payload = {'action': 'query', 'list': 'allimages', 'aifrom': aifrom, 'ailimit': '5000', 'format': 'json'}
+    decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
-payload = {'limit': '25', 'page': '0', 'responseGroup': 'small', 'reported': 'false', 'viewableOnly': 'true'}
-r = session.get('https://services.wikia.com/discussion/'+wiki_id+'/posts', params=payload, headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
-for post in r.json()['_embedded']['doc:posts']:
-    print(post['rawContent'])
+    for image in decoded_json['query']['allimages']:
+        print(image['title'])
 
-    if 'new' in post['rawContent']:
-        r = session.put('https://services.wikia.com/discussion/'+wiki_id+'/posts/' + post['id'] + "/delete", headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
-        print(r.text)
+    if 'query-continue' in decoded_json:
+        return get_images(decoded_json['query-continue']['allimages']['aifrom'])
+
+    return
+
+get_images()
