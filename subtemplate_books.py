@@ -45,7 +45,7 @@ for page in r.json()['query']['embeddedin']:
     in_gallery = False
     page_number = 1
     in_nested = False
-    nested_regex = re.compile('\s*\|[a-z]+\s*=\s*\{\{Book/game')
+    nested_regex = re.compile('\s*\|[a-z]+\s*=\s*\{\{[Bb]ook/game')
     bracket_count = 0
 
     # Searches for <gallery type="slideshow" widths="250"> or <gallery type="slideshow"  widths="250" position="center">
@@ -69,7 +69,11 @@ for page in r.json()['query']['embeddedin']:
                 in_gallery = True
                 line = '|image = <gallery>'
 
+        if not in_nested and not nested_regex.match(line):
+            new_body = new_body + line + '\n'
+
         ########################################################################
+        #FIXME: edge case: }}}}{{Main|...
         if in_nested:
             #print(line)
             bracket_count = bracket_count + line.count('{')
@@ -96,13 +100,15 @@ for page in r.json()['query']['embeddedin']:
             #print('SUBTEMPLATE FOUND IN:' + page['title'])
             in_nested = True
             bracket_count = 2
-            game = re.search(r'\s*\|([a-z]+)\s*=\s*\{\{Book/game', line).group(1)
-
-        if not in_nested:
-            new_body = new_body + line + '\n'
+            game = re.search(r'\s*\|([a-z]+)\s*=\s*\{\{[Bb]ook/game', line).group(1)
 
     #sys.stdout.buffer.write((new_body).encode('utf-8'))
+    #print(str(len(new_body)) + "," + page['title'])
 
-    #TODO: test body size, break if over 8k.
-    #payload = {'action': 'edit', 'title': page['title'], 'summary': 'PI Gallery fix', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
-    #print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
+    #Body size over 8k characters will be uploaded multipart/form-data
+    if len(new_body) > 7800:
+        payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
+        print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
+    else:
+        payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
+        print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers, files = {'file': (None, new_body)}).text)
