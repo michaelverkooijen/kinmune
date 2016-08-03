@@ -5,6 +5,7 @@ import requests
 import json
 from urllib.parse import quote
 import sys
+import re
 
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'user-agent': 'Flightmare/bot'}
 
@@ -26,7 +27,7 @@ wiki_id = core.get_wiki_id(session, wiki)
 edit_token = core.get_edit_token(session, wiki, 'User:'+username)
 print(edit_token)
 
-payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:OblivionBooks', 'eilimit': '5000', 'format': 'json'}
+payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:Book', 'eilimit': '5000', 'format': 'json'}
 r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload)
 print(r.url)
 
@@ -39,9 +40,13 @@ for page in r.json()['query']['embeddedin']:
     payload = {'action': 'raw'}
     body = session.get('https://'+wiki+'.wikia.com/wiki/'+page['title'], params=payload).text
 
+    game = 'ERROR'
     new_body = ''
     in_gallery = False
     page_number = 1
+    in_nested = False
+    nested_regex = re.compile('\s*\|[a-z]+\s*=\s*\{\{Book/game')
+    bracket_count = 0
 
     # Searches for <gallery type="slideshow" widths="250"> or <gallery type="slideshow"  widths="250" position="center">
     # Some pages have galleries without images, skip these!
@@ -51,7 +56,7 @@ for page in r.json()['query']['embeddedin']:
 
         if in_gallery:
             if '|' not in line:
-                line = line + '|Page ' + str(page_number)
+                line = line + '|Cover ' + str(page_number)
                 page_number = page_number + 1
 
         if '<gallery type="slideshow" widths="250">' in line:
@@ -64,11 +69,40 @@ for page in r.json()['query']['embeddedin']:
                 in_gallery = True
                 line = '|image = <gallery>'
 
-        new_body = new_body + line + '\n'
+        ########################################################################
+        if in_nested:
+            #print(line)
+            bracket_count = bracket_count + line.count('{')
+            bracket_count = bracket_count - line.count('}')
+            data = re.search(r'\s*\|([a-z]+)\s*=\s*(.*)', line)
+            if bracket_count < 1:
+                in_nested = False
+
+            if data:
+                data_name = data.group(1)
+                data_value = data.group(2)
+                if bracket_count < 1:
+                    data_value = data_value[:-2]
+
+                if data_name == 'skill' or data_name == 'weight' or data_name == 'value' or data_name == 'id':
+                    #print('|' + game + '/' + data_name + "=" + data_value)
+                    new_body = new_body + '|' + game + '/' + data_name + "=" + data_value + '\n'
+
+            #BEFORE OR AFTER? TEST BRACKETS Line can be just }}, If explode result <2 strings break?
+            #count brackets first if <1 in_nested = False && insert brackets until bracket_count==0
+            #explode line, add line constructed from |game/left=right WHEN left equals skill/weight/value/id
+
+        if nested_regex.match(line):
+            #print('SUBTEMPLATE FOUND IN:' + page['title'])
+            in_nested = True
+            bracket_count = 2
+            game = re.search(r'\s*\|([a-z]+)\s*=\s*\{\{Book/game', line).group(1)
+
+        if not in_nested:
+            new_body = new_body + line + '\n'
 
     #sys.stdout.buffer.write((new_body).encode('utf-8'))
 
     #TODO: test body size, break if over 8k.
-    if body is not new_body:
-        payload = {'action': 'edit', 'title': page['title'], 'summary': 'PI Gallery fix', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
-        print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
+    #payload = {'action': 'edit', 'title': page['title'], 'summary': 'PI Gallery fix', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
+    #print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)

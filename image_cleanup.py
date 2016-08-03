@@ -31,7 +31,17 @@ def get_images(aifrom=None):
     decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
     for image in decoded_json['query']['allimages']:
-        print(image['title'])
+        #print(image['title'])
+
+        # ignore newest images
+        if '2016' not in image['timestamp']:
+            # https://elderscrolls.wikia.com/api.php?list=imageusage&iutitle=File:Skyrim Cover.jpg&format=json&iulimit=1&action=query
+            payload = {'action': 'query', 'list': 'imageusage', 'iutitle': image['title'], 'uilimit': '1', 'format': 'json'}
+            r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
+
+            # test if nothing links here
+            if not r.json()['query']['imageusage']:
+                print(image['title'])
 
     if 'query-continue' in decoded_json:
         return get_images(decoded_json['query-continue']['allimages']['aifrom'])
