@@ -106,7 +106,7 @@ for page in r.json()['query']['embeddedin']:
     #print(str(len(new_body)) + "," + page['title'])
 
     #Body size over 8k characters will be uploaded multipart/form-data
-    if len(new_body) > 7800:
+    if len(new_body) < 7800:
         payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
         print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
     else:
