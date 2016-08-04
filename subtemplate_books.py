@@ -101,14 +101,9 @@ for page in r.json()['query']['embeddedin']:
             in_nested = True
             bracket_count = 2
             game = re.search(r'\s*\|([a-z]+)\s*=\s*\{\{[Bb]ook/game', line).group(1)
+            new_body = new_body + '|' + game + '/lead=1\n'
 
     #sys.stdout.buffer.write((new_body).encode('utf-8'))
-    #print(str(len(new_body)) + "," + page['title'])
 
-    #Body size over 8k characters will be uploaded multipart/form-data
-    if len(new_body) < 7800:
-        payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
-        print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
-    else:
-        payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
-        print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers, files = {'file': (None, new_body)}).text)
+    payload = {'action': 'edit', 'title': page['title'], 'summary': 'Nested template removal', 'bot': '1', 'watchlist': 'nochange', 'format': 'json', 'text': new_body, 'token': edit_token}
+    print(session.post('http://'+wiki+'.wikia.com/api.php', data=payload, headers=headers).text)

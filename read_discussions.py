@@ -5,7 +5,7 @@ import requests
 import json
 from urllib.parse import quote
 
-headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
+headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'user-agent': 'Flightmare/bot'}
 
 # load settings.json
 print(os.environ['HOME'])
@@ -26,10 +26,10 @@ print(wiki_id)
 
 
 payload = {'limit': '25', 'page': '0', 'responseGroup': 'small', 'reported': 'false', 'viewableOnly': 'true'}
-r = session.get('https://services.wikia.com/discussion/'+wiki_id+'/posts', params=payload, headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
+r = session.get('https://services.wikia.com/discussion/'+wiki_id+'/posts', params=payload, headers={'Accept': 'application/hal+json', 'user-agent': 'Flightmare/bot'})
 for post in r.json()['_embedded']['doc:posts']:
     print(post['rawContent'])
 
     if 'new' in post['rawContent']:
-        r = session.put('https://services.wikia.com/discussion/'+wiki_id+'/posts/' + post['id'] + "/delete", headers={'Accept': 'application/hal+json', 'User-Agent': 'Flightmare/bot'})
+        r = session.put('https://services.wikia.com/discussion/'+wiki_id+'/posts/' + post['id'] + "/delete", headers={'Accept': 'application/hal+json', 'user-agent': 'Flightmare/bot'})
         print(r.text)
