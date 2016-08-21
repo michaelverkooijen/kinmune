@@ -5,24 +5,22 @@ import requests
 import json
 from urllib.parse import quote
 
+dest_wiki = "flightmare"
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
 
 # load settings.json
-print(os.environ['HOME'])
 settings = json.load(open(os.environ['HOME']+'/.discussions-bot/settings.json', 'r'))
 wiki = settings['wiki']
 username = settings['username']
 password = settings['password']
 is_mod = settings['isMod']
-print(username)
 
 # Log in to Wikia network
 session = core.login(wiki, username, password)
 
 print(core.is_logged_in(session, username, wiki))
 
-wiki_id = core.get_wiki_id(session, wiki)
-edit_token = core.get_edit_token(session, wiki, 'User:'+username)
+edit_token = core.get_edit_token(session, dest_wiki, 'User:'+username)
 print(edit_token)
 
 # Loops until all images are through
@@ -31,17 +29,9 @@ def get_images(aifrom=None):
     decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
     for image in decoded_json['query']['allimages']:
-        #print(image['title'])
-
-        # ignore newest images
-        if '2016' not in image['timestamp']:
-            # https://elderscrolls.wikia.com/api.php?list=imageusage&iutitle=File:Skyrim Cover.jpg&format=json&iulimit=1&action=query
-            payload = {'action': 'query', 'list': 'imageusage', 'iutitle': image['title'], 'uilimit': '1', 'format': 'json'}
-            r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
-
-            # test if nothing links here
-            if not r.json()['query']['imageusage']:
-                print(image['title'])
+        payload = {'action': 'upload', 'filename': image['name'], 'url': image['url'], 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
+        print(session.post('http://'+dest_wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
+        print(image['name']+" DONE")
 
     if 'query-continue' in decoded_json:
         return get_images(decoded_json['query-continue']['allimages']['aifrom'])

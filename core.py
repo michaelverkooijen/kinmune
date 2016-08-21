@@ -23,13 +23,11 @@ def is_logged_in(session, username, wiki):
     r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
     return r.json()['query']['userinfo']['name'] == username
 
-# FIXME: untested
 def get_edit_token(session, wiki, article):
-    payload = {'action': 'query', 'prop': 'info', 'intoken': 'edit', 'titles': article, 'format': 'json'}
+    payload = {'action': 'query', 'prop': 'info', 'intoken': 'edit', 'titles': '#', 'format': 'json'}
     r = session.post('https://'+wiki+'.wikia.com/api.php', data=payload, headers=headers)
-    return r.json()['query']['pages']['556436']['edittoken']
+    return r.json()['query']['pages']['-1']['edittoken']
 
-# FIXME: untested
 def get_wiki_id(session, wiki):
     payload = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'wikidesc', 'format': 'json'}
     r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
