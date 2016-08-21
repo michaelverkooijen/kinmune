@@ -21,7 +21,7 @@ is_mod = settings['isMod']
 # Log in to Wikia network
 session = core.login(wiki, username, password)
 
-edit_token = core.get_edit_token(session, wiki, 'User:'+username)
+edit_token = core.get_edit_token(session, wiki)
 
 if now_flag:
     day = date.today() #get today's date

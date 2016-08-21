@@ -23,7 +23,7 @@ def is_logged_in(session, username, wiki):
     r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
     return r.json()['query']['userinfo']['name'] == username
 
-def get_edit_token(session, wiki, article):
+def get_edit_token(session, wiki):
     payload = {'action': 'query', 'prop': 'info', 'intoken': 'edit', 'titles': '#', 'format': 'json'}
     r = session.post('https://'+wiki+'.wikia.com/api.php', data=payload, headers=headers)
     return r.json()['query']['pages']['-1']['edittoken']

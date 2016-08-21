@@ -20,7 +20,7 @@ session = core.login(wiki, username, password)
 
 print(core.is_logged_in(session, username, wiki))
 
-edit_token = core.get_edit_token(session, dest_wiki, 'User:'+username)
+edit_token = core.get_edit_token(session, dest_wiki)
 print(edit_token)
 
 # Loops until all images are through

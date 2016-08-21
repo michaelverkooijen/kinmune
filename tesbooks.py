@@ -23,7 +23,7 @@ session = core.login(wiki, username, password)
 print(core.is_logged_in(session, username, wiki))
 
 wiki_id = core.get_wiki_id(session, wiki)
-edit_token = core.get_edit_token(session, wiki, 'User:'+username)
+edit_token = core.get_edit_token(session, wiki)
 print(edit_token)
 
 payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:Book', 'eilimit': '5000', 'format': 'json'}
