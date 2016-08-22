@@ -5,7 +5,6 @@ import requests
 import json
 from urllib.parse import quote
 
-dest_wiki = "flightmare"
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
 
 # load settings.json
@@ -14,11 +13,10 @@ wiki = settings['wiki']
 username = settings['username']
 password = settings['password']
 is_mod = settings['isMod']
+dest_wiki = settings['destWiki']
 
 # Log in to Wikia network
 session = core.login(wiki, username, password)
-
-print(core.is_logged_in(session, username, wiki))
 
 edit_token = core.get_edit_token(session, dest_wiki)
 print(edit_token)
