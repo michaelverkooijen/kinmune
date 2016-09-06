@@ -34,5 +34,6 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
         name = post['createdBy']['name']
         forum_name = post['forumName']
         thread_id = post['threadId']
-        message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ') + "> —  *<http://tes.wikia.com/wiki/User:" + name + "|" + name + ">* in _" + forum_name + "_"
+        user_id = post['createdBy']['id']
+        message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
         slack_client.api_call("chat.postMessage", channel="discussions-rc", text=message, as_user=True)
