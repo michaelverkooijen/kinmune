@@ -28,6 +28,11 @@ wiki_id = core.get_wiki_id(session, wiki)
 #TODO: store last post epoch timer, don't depend on system timer.
 payload = {'limit': '25', 'page': '0', 'responseGroup': 'small', 'reported': 'false', 'viewableOnly': 'true'}
 r = session.get('https://services.wikia.com/discussion/'+wiki_id+'/posts', params=payload, headers={'Accept': 'application/hal+json', 'user-agent': 'Flightmare/bot'})
+
+# Error logging
+if r.status_code is not 200:
+    print("HTTP status: " + str(r.status_code))
+
 for post in reversed(r.json()['_embedded']['doc:posts']):
     if int(post['creationDate']['epochSecond']) > ts - update_interval:
         content = post['rawContent']
@@ -37,3 +42,5 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
         user_id = post['createdBy']['id']
         message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
         slack_client.api_call("chat.postMessage", channel="discussions-rc", text=message, as_user=True)
+
+# Delete: re.match(r'.*\w+', '')

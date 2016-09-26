@@ -7,13 +7,14 @@ from urllib.parse import quote
 # TODO: make module, return session
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
 
+# TODO: Log in to Community Central to avoid SSL Certificate errors.
 def login(wiki, username, password):
     session = requests.Session()
     payload = {'action': 'login', 'lgname': username, 'lgpassword': password, 'format': 'json'}
     r = session.post('https://'+wiki+'.wikia.com/api.php', data=payload, headers=headers)
     payload['lgtoken'] = r.json()['login']['token']
     r = session.post('https://'+wiki+'.wikia.com/api.php', data=payload, headers=headers)
-    print(r.json()['login']['result'])
+    # print(r.json()['login']['result'])
     # TODO: test for login failures
     return session
 
