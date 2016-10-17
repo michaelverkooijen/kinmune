@@ -4,6 +4,7 @@ import os
 import requests
 import json
 import time
+import re
 from slackclient import SlackClient
 
 ts = time.time()
@@ -40,7 +41,11 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
         forum_name = post['forumName']
         thread_id = post['threadId']
         user_id = post['createdBy']['id']
+        post_id = post['id']
         message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
         slack_client.api_call("chat.postMessage", channel="discussions-rc", text=message, as_user=True)
 
-# Delete: re.match(r'.*\w+', '')
+        # Delete symbol spam messages not containing any words.
+        if not re.match(r'.*\w+', content.replace('\n', ' ')) and is_mod:
+            session.put('https://services.wikia.com/discussion/'+wiki_id+'/posts/'+post_id+'/delete', headers={'Accept': 'application/hal+json', 'user-agent': 'Flightmare/bot'})
+            print('Deleted: https://tes.wikia.com/d/p/'+thread_id+'/r/'+post_id+' and content was: '+content.replace('\n', ' '))

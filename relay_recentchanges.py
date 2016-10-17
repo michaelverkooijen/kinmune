@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from slackclient import SlackClient
 
 d = Differ()
-ts = datetime.utcnow() - timedelta(minutes=-5)
+ts = datetime.utcnow() + timedelta(minutes=-5)
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'user-agent': 'Flightmare/bot'}
 
 # load settings.json
@@ -23,14 +23,12 @@ slack_client = SlackClient(settings['slackToken'])
 # Log in to Wikia network
 session = core.login(wiki, username, password)
 
-print (ts.strftime('%Y%m%d%H%M%S'))
-
 # TODO: reverse list, put all diffs in tuples and output the longest one!
 def get_revisions(rcstart=None):
     payload = {'action': 'query', 'list': 'recentchanges', 'rcshow': 'anon', 'rcnamespace': '0', 'rcprop': 'title|ids|sizes|timestamp|user', 'rcstart': rcstart, 'rcend': ts.strftime('%Y%m%d%H%M%S'), 'format': 'json'}
     decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
-    for revision in decoded_json['query']['recentchanges']:
+    for revision in reversed(decoded_json['query']['recentchanges']):
         payload = {'action': 'raw', 'oldid': revision['revid']}
         body_new = session.get('https://'+wiki+'.wikia.com/wiki/'+revision['title'], params=payload, headers=headers).text.splitlines()
 
