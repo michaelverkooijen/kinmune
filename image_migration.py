@@ -3,7 +3,6 @@ import core
 import os
 import requests
 import json
-from urllib.parse import quote
 
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
 

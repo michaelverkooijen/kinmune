@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 import requests
+import os
 import json
-from urllib.parse import quote
+import pickle
 
-# TODO: suspend session instead of logging in
-# TODO: make module, return session
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'Flightmare/bot'}
 
-# TODO: Log in to Community Central to avoid SSL Certificate errors.
 def login(wiki, username, password):
+    #Tries to load previous session, otherwise creates a new one.
+    try:
+        session = pickle.load(open(os.environ['HOME']+'/.discussions-bot/session.p', 'rb'))
+        if is_logged_in(session, username, wiki):
+            return session
+    except:
+        print('no valid session file found')
     session = requests.Session()
     payload = {'action': 'login', 'lgname': username, 'lgpassword': password, 'format': 'json'}
     r = session.post('https://community.wikia.com/api.php', data=payload, headers=headers)
@@ -16,12 +21,13 @@ def login(wiki, username, password):
     r = session.post('https://community.wikia.com/api.php', data=payload, headers=headers)
     # print(r.json()['login']['result'])
     # TODO: test for login failures
+    pickle.dump(session, open(os.environ['HOME']+'/.discussions-bot/session.p', 'wb'))
     return session
 
 # bool: true if logged in as provided user, false for other user or anon
 def is_logged_in(session, username, wiki):
     payload = {'action': 'query', 'meta': 'userinfo', 'format': 'json'}
-    r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers)
+    r = session.get('https://community.wikia.com/api.php', params=payload, headers=headers)
     return r.json()['query']['userinfo']['name'] == username
 
 def get_edit_token(session, wiki):

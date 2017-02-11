@@ -9,6 +9,7 @@ from slackclient import SlackClient
 
 ts = time.time()
 update_interval = 120 #in seconds
+#timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 headers = {'Connection': 'Keep alive', 'Content-Type': 'application/x-www-form-urlencoded', 'user-agent': 'Flightmare/bot'}
 
@@ -42,7 +43,12 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
         thread_id = post['threadId']
         user_id = post['createdBy']['id']
         post_id = post['id']
-        message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
+        thread_title = post['_embedded']['thread'][0]['title']
+
+        if thread_title:
+            message = thread_title + ": <https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
+        else:
+            message = "<https://tes.wikia.com/d/p/" + thread_id + "|" + content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') + "> —  *<http://tes.wikia.com/d/u/" + user_id + "|" + name + ">* in _" + forum_name + "_"
         slack_client.api_call("chat.postMessage", channel="discussions-rc", text=message, as_user=True)
 
         # Delete symbol spam messages not containing any words.
