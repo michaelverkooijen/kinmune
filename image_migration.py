@@ -26,7 +26,11 @@ def get_images(aifrom=None):
     decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
     for image in decoded_json['query']['allimages']:
-        payload = {'action': 'upload', 'filename': image['name'], 'url': image['url'], 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
+        # get page contents
+        payload = {'action': 'raw'}
+        body = session.get('https://'+wiki+'.wikia.com/wiki/'+image['title'], params=payload).text
+
+        payload = {'action': 'upload', 'filename': image['name'], 'url': image['url'], 'text': body, 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
         print(session.post('http://'+dest_wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
         print(image['name']+" DONE")
 

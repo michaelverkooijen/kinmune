@@ -31,7 +31,6 @@ payload = {'action': 'query', 'list': 'embeddedin', 'eititle': 'Template:Book', 
 r = session.get('https://'+wiki+'.wikia.com/api.php', params=payload)
 print(r.url)
 
-#FIXME: not compatible with articles over 8k in size due to not using multi-part uploads.
 #TODO: implement continue from articleID in case of resuming after emergency quit
 for page in r.json()['query']['embeddedin']:
     #sys.stdout.buffer.write((page['title']).encode('utf-8'))
