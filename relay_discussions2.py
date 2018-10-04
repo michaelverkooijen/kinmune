@@ -44,6 +44,7 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
         user_id = post['createdBy']['id']
         post_id = post['id']
         thread_title = post['_embedded']['thread'][0]['title']
+        post_epoch = post['creationDate']['epochSecond']
         if post['isReply']:
             thread_title = post['_embedded']['thread'][0]['title'] + " (reply)"
         is_reply = post['isReply']
@@ -57,7 +58,8 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
             "title": thread_title,
             "title_link": "https://tes.wikia.com/d/p/" + thread_id,
             "text": content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
-            "footer": forum_name
+            "footer": forum_name,
+            "ts": post_epoch
         }])
 
         #TODO: test for multiple attachments
@@ -72,7 +74,8 @@ for post in reversed(r.json()['_embedded']['doc:posts']):
                 "title_link": "https://tes.wikia.com/d/p/" + thread_id,
                 "text": content.replace('\n', ' ').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'),
                 "image_url": image + "/scale-to-width-down/400",
-                "footer": forum_name
+                "footer": forum_name,
+                "ts": post_epoch
             }])
 
         slack_client.api_call("chat.postMessage", channel="discussions-rc", text="", attachments=attachment, as_user=True)

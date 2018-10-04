@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#wgAllowCopyUploads must be set to true
 import core
 import os
 import requests
@@ -23,16 +24,24 @@ print(edit_token)
 # Loops until all images are through
 def get_images(aifrom=None):
     payload = {'action': 'query', 'list': 'allimages', 'aifrom': aifrom, 'ailimit': '5000', 'format': 'json'}
-    decoded_json = session.get('https://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
+    decoded_json = session.get('http://'+wiki+'.wikia.com/api.php', params=payload, headers=headers).json()
 
     for image in decoded_json['query']['allimages']:
         # get page contents
         payload = {'action': 'raw'}
-        body = session.get('https://'+wiki+'.wikia.com/wiki/'+image['title'], params=payload).text
+        body = session.get('http://'+wiki+'.wikia.com/wiki/'+image['title'], params=payload).text
 
-        payload = {'action': 'upload', 'filename': image['name'], 'url': image['url'], 'text': body, 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
-        print(session.post('http://'+dest_wiki+'.wikia.com/api.php', data=payload, headers=headers).text)
-        print(image['name']+" DONE")
+        payload = {'action': 'upload', 'filename': image['name'], 'url': image['url'], 'text': body, 'ignorewarnings': 1, 'watchlist': 'nochange', 'format': 'json', 'token': edit_token}
+        result = session.post('https://'+dest_wiki+'.wikia.com/api.php', data=payload, headers=headers, verify=False)
+        print(result.text)
+        # if fail, retry once (connection isn't what it used to be)
+        if 'error' in result.json():
+            print("retrying...")
+            result = session.post('https://'+dest_wiki+'.wikia.com/api.php', data=payload, headers=headers, verify=False)
+            print(result.text)
+            # still not done? Let user inspect manually
+            if 'error' in result.json():
+                print("ATTENTION REQUIRED: " + image['name'])
 
     if 'query-continue' in decoded_json:
         return get_images(decoded_json['query-continue']['allimages']['aifrom'])
